@@ -12,12 +12,6 @@ if ROOT not in sys.path:
 from engine.systems import Projectile3D, MassSpring, DoublePendulum
 from engine.simulate import run_system, landing_time_from_trajectory
 from engine.utils import to_dataframe, projectile_energy, mass_spring_energy
-try:
-    import plotly  
-except ModuleNotFoundError:
-    import streamlit as st
-    st.error("Plotly is not installed. Run: pip install -r requirements.txt (or pip install plotly)")
-    st.stop()
 from viz.plots import traj3d, timeseries, energy_plot
 
 st.set_page_config(page_title="Physics Viz + ML", layout="wide")
