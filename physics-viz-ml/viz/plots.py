@@ -1,6 +1,5 @@
 import numpy as np
-import plotly.graph_objs as go
-
+import plotly.graph_objects as go
 
 def traj3d(ts, xyz, title="3D Trajectory", show_ground=True):
     x, y, z = xyz[:, 0], xyz[:, 1], xyz[:, 2]
