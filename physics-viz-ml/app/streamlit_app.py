@@ -11,8 +11,9 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 from engine.systems import Projectile3D, MassSpring, DoublePendulum
 from engine.simulate import run_system, landing_time_from_trajectory
-from engine.utils import to_dataframe, projectile_energy, mass_spring_energy
-from viz.plots import traj3d, timeseries, energy_plot
+from engine.utils import to_dataframe, projectile_energy, mass_spring_energy, mass_spring_to_xyz, double_pendulum_to_xyz, build_predicted_parabola
+from viz.plots import traj3d, timeseries, energy_plot, traj3d_animated, double_pendulum_animated
+import plotly.io as pio  # for HTML export
 
 st.set_page_config(page_title="Physics Viz + ML", layout="wide")
 st.title("Physics Visualization & Prediction Engine")
