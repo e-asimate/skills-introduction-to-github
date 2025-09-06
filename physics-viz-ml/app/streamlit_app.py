@@ -56,6 +56,7 @@ if sim_choice == "Projectile (3D)":
     with col[2]:
         show_energy = st.checkbox("Show energy overlay", value=True)
         export_png = st.checkbox("Enable PNG export", value=False)
+        animate_sim = st.checkbox("Animate simulation", value=False)
     with col[3]:
         st.markdown(" ")
         st.markdown(" ")
@@ -73,8 +74,14 @@ if sim_choice == "Projectile (3D)":
         lt = landing_time_from_trajectory(ts, ys)
         col1, col2 = st.columns([2, 1])
         with col1:
-            fig3d = traj3d(ts, ys[:, :3], title="Projectile Trajectory")
+            if animate_sim:
+                fig3d = traj3d_animated(ts, ys[:, :3], title="Projectile Trajectory (Animated)")
+            else:
+                fig3d = traj3d(ts, ys[:, :3], title="Projectile Trajectory")
             st.plotly_chart(fig3d, use_container_width=True)
+            if animate_sim:
+                html = pio.to_html(fig3d, include_plotlyjs="cdn", full_html=True)
+                st.download_button("Download Animation (HTML)", html, file_name="projectile_animation.html")
         with col2:
             st.plotly_chart(timeseries(ts, ys[:, 3:], labels=["vx", "vy", "vz"], title="Velocity Components"), use_container_width=True)
             st.metric("Estimated landing time (s)", f"{lt:.3f}" if lt else "n/a")
@@ -88,7 +95,6 @@ if sim_choice == "Projectile (3D)":
         if export_png:
             try:
                 import plotly.io as pio
-
                 png = pio.to_image(fig3d, format="png", scale=2)
                 st.download_button("Download Trajectory PNG", png, file_name="trajectory.png")
             except Exception as e:
@@ -101,7 +107,26 @@ if sim_choice == "Projectile (3D)":
         pipe = model_info["pipeline"]
         X = pd.DataFrame([[mass, cd, area, v0, theta, phi]], columns=["mass", "cd", "area", "v0", "theta", "phi"])
         pred = pipe.predict(X)[0]
-        st.write({"landing_time": float(pred[0]), "range_x": float(pred[1]), "range_y": float(pred[2]), "max_height": float(pred[3])})
+        pred_dict = {
+                        "landing_time": float(pred[0]),
+                        "range_x": float(pred[1]),
+                        "range_y": float(pred[2]),
+                        "max_height": float(pred[3]),
+                    }
+        do_animate_pred = st.checkbox("Animate predicted path", value=False)
+        if do_animate_pred:
+            ts_p, xyz_p = build_predicted_parabola(
+                v0=v0, theta_deg=theta, phi_deg=phi,
+                landing_time=pred_dict["landing_time"],
+                max_height=pred_dict["max_height"],
+                range_x=pred_dict["range_x"],
+                range_y=pred_dict["range_y"],
+            )
+            fig_pred = traj3d_animated(ts_p, xyz_p, title="Predicted Trajectory (Animated)")
+            st.plotly_chart(fig_pred, use_container_width=True)
+            html = pio.to_html(fig_pred, include_plotlyjs="cdn", full_html=True)
+            st.download_button("Download Predicted Animation (HTML)", html, file_name="projectile_pred_animation.html")
+        st.write(pred_dict)
     else:
         st.caption("Train and save model_rf.pkl to enable instant predictions.")
 
@@ -118,11 +143,18 @@ elif sim_choice == "Mass–Spring":
     with col[2]:
         show_energy = st.checkbox("Show energy overlay", value=True)
         run_btn = st.button("Run Simulation", use_container_width=True)
+        animate_ms = st.checkbox("Animate simulation (3D X-axis)", value=False)
 
     if run_btn:
         sys = MassSpring(k=k, m=m, c=c)
         ts, ys = run_system(sys, [x0, v0], t_span=(0.0, T), h=h, method=method)
         st.plotly_chart(timeseries(ts, ys, labels=["x", "v"], title="Mass–Spring State"), use_container_width=True)
+        if animate_ms:
+            xyz_ms = mass_spring_to_xyz(ys)  # (x,0,0)
+            fig_ms = traj3d_animated(ts, xyz_ms, title="Mass–Spring (Animated)")
+            st.plotly_chart(fig_ms, use_container_width=True)
+            html = pio.to_html(fig_ms, include_plotlyjs="cdn", full_html=True)
+            st.download_button("Download Animation (HTML)", html, file_name="mass_spring_animation.html")
         if show_energy:
             e = mass_spring_energy(ys, m, k)
             st.plotly_chart(energy_plot(ts, e, title="Energy vs Time"), use_container_width=True)
@@ -143,6 +175,7 @@ else:
     with col[2]:
         w1 = st.number_input("ω1 (rad/s)", -20.0, 20.0, 0.0, 0.1)
         w2 = st.number_input("ω2 (rad/s)", -20.0, 20.0, 0.0, 0.1)
+        animate_dp = st.checkbox("Animate simulation (bobs and rods)", value=False)
         run_btn = st.button("Run Simulation", use_container_width=True)
 
     if run_btn:
@@ -150,6 +183,13 @@ else:
         y0 = np.array([np.deg2rad(th1), w1, np.deg2rad(th2), w2])
         ts, ys = run_system(sys, y0, t_span=(0.0, T), h=h, method=method)
         st.plotly_chart(timeseries(ts, ys, labels=["θ1", "ω1", "θ2", "ω2"], title="Double Pendulum State"), use_container_width=True)
+
+    if animate_dp:
+        bob1, bob2 = double_pendulum_to_xyz(ys, L1=L1, L2=L2)
+        fig_dp = double_pendulum_animated(ts, bob1, bob2, title="Double Pendulum (Animated)")
+        st.plotly_chart(fig_dp, use_container_width=True)
+        html = pio.to_html(fig_dp, include_plotlyjs="cdn", full_html=True)
+        st.download_button("Download Animation (HTML)", html, file_name="double_pendulum_animation.html")
 
 st.markdown("---")
 with st.expander("Help: How to use this app"):
