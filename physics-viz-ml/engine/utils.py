@@ -37,10 +37,6 @@ def build_predicted_parabola(v0: float, theta_deg: float, phi_deg: float,
     x = vx_eff * ts; y = vy_eff * ts; z = vz0 * ts - 0.5 * g_eff * ts**2
     return ts, np.stack([x, y, z], axis=1)
 Wire into app/streamlit_app.py
-Update imports:
-from engine.utils import to_dataframe, projectile_energy, mass_spring_energy, mass_spring_to_xyz, double_pendulum_to_xyz, build_predicted_parabola
-from viz.plots import traj3d, timeseries, energy_plot, traj3d_animated, double_pendulum_animated
-import plotly.io as pio  # for HTML export
 
 
 def to_dataframe(ts: np.ndarray, ys: np.ndarray, labels: list[str]) -> pd.DataFrame:
