@@ -2,6 +2,10 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import joblib
+import os, sys
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
 from engine.systems import Projectile3D, MassSpring, DoublePendulum
 from engine.simulate import run_system, landing_time_from_trajectory
 from engine.utils import to_dataframe, projectile_energy, mass_spring_energy
